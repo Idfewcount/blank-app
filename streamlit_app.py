@@ -17,7 +17,7 @@ if st.button("Graj"):
     for i in range(1, 6):
         los = random.randint(1, 5)
 
-        wynik.write("Losowanie", i, "- wynik:", los)
+        wynik.write(f"Losowanie {i} - wynik: {los}")
 
         if liczba == los:
             punkty = punkty + 1
