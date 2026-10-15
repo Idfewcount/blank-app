@@ -1,39 +1,81 @@
 
 import streamlit as st
-import random
-import time
 
-st.title("Gra: Traf liczbę!")
+st.title("Kółko i krzyżyk")
 
-st.write("Wybierz liczbę od 1 do 5.")
-st.write("Komputer wykona 5 losowań.")
+# Przygotowanie nowej gry
+if "plansza" not in st.session_state:
+    st.session_state.plansza = [""] * 9
+    st.session_state.gracz = "X"
+    st.session_state.koniec = False
+    st.session_state.wynik = ""
 
-liczba = st.number_input("Twoja liczba:", 1, 5, 3)
+plansza = st.session_state.plansza
 
-if st.button("Graj"):
-    punkty = 0
-    wynik = st.empty()
+st.write("Ruch gracza:", st.session_state.gracz)
 
-    for i in range(1, 6):
-        los = random.randint(1, 5)
+# Możliwe zwycięskie układy
+wygrane = [
+    (0, 1, 2),
+    (3, 4, 5),
+    (6, 7, 8),
+    (0, 3, 6),
+    (1, 4, 7),
+    (2, 5, 8),
+    (0, 4, 8),
+    (2, 4, 6)
+]
 
-        wynik.write(f"Losowanie {i} - wynik: {los}")
+# Rysowanie planszy
+for w in range(3):
+    kolumny = st.columns(3)
 
-        if liczba == los:
-            punkty = punkty + 1
-            st.success("Trafienie!")
+    for k in range(3):
+        i = 3 * w + k
 
-        if liczba != los:
-            st.write("Pudło!")
+        napis = plansza[i]
 
-        time.sleep(1)
+        if napis == "":
+            napis = "·"
 
-    wynik.write("Koniec gry!")
-    st.write("Zdobyte punkty:", punkty)
+        if kolumny[k].button(
+            napis,
+            key=i,
+            use_container_width=True,
+            disabled=plansza[i] != "" or st.session_state.koniec
+        ):
+            plansza[i] = st.session_state.gracz
 
-    if punkty >= 2:
-        st.balloons()
-        st.success("Wygrałeś!")
+            # Sprawdzanie zwycięstwa
+            for a, b, c in wygrane:
+                if plansza[a] != "":
+                    if plansza[a] == plansza[b] == plansza[c]:
+                        st.session_state.koniec = True
+                        st.session_state.wynik = "Wygrywa gracz " + st.session_state.gracz
 
-    if punkty < 2:
-        st.error("Przegrałeś! Spróbuj ponownie.")
+            # Sprawdzanie remisu
+            if not st.session_state.koniec:
+                if "" not in plansza:
+                    st.session_state.koniec = True
+                    st.session_state.wynik = "Remis!"
+
+            # Zmiana gracza
+            if not st.session_state.koniec:
+                if st.session_state.gracz == "X":
+                    st.session_state.gracz = "O"
+                else:
+                    st.session_state.gracz = "X"
+
+            st.rerun()
+
+# Wynik gry
+if st.session_state.koniec:
+    st.success(st.session_state.wynik)
+
+# Rozpoczęcie nowej gry
+if st.button("Nowa gra"):
+    st.session_state.plansza = [""] * 9
+    st.session_state.gracz = "X"
+    st.session_state.koniec = False
+    st.session_state.wynik = ""
+    st.rerun()
